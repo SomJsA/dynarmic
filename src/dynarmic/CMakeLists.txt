@@ -70,6 +70,7 @@ add_library(dynarmic
     frontend/imm.cpp
     frontend/imm.h
     interface/exclusive_monitor.h
+    interface/jit_map.h
     interface/optimization_flags.h
     ir/acc_type.h
     ir/basic_block.cpp

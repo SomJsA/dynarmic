@@ -79,6 +79,37 @@ void PerfMapClear() {
 
 }  // namespace Dynarmic::Backend::X64
 
+#elif defined(_WIN32)
+
+#    include <atomic>
+#    include "dynarmic/interface/jit_map.h"
+
+namespace Dynarmic::Backend::X64 {
+namespace {
+std::atomic<JitMapRegisterCallback> register_callback{nullptr};
+std::atomic<JitMapClearCallback> clear_callback{nullptr};
+}  // namespace
+
+void SetJitMapCallbacks(JitMapRegisterCallback registration, JitMapClearCallback clear) {
+    clear_callback.store(clear, std::memory_order_release);
+    register_callback.store(registration, std::memory_order_release);
+}
+
+namespace detail {
+void PerfMapRegister(const void* start, const void* end, std::string_view name) {
+    if (const auto callback = register_callback.load(std::memory_order_acquire)) {
+        callback(start, end, name);
+    }
+}
+}  // namespace detail
+
+void PerfMapClear() {
+    if (const auto callback = clear_callback.load(std::memory_order_acquire)) {
+        callback();
+    }
+}
+}  // namespace Dynarmic::Backend::X64
+
 #else
 
 namespace Dynarmic::Backend::X64 {
