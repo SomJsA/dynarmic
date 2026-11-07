@@ -183,6 +183,16 @@ struct Jit::Impl {
         return Common::DisassembleX64(block_of_code.GetCodeBegin(), size);
     }
 
+    void Precompile(const std::uint32_t* addresses, const bool* thumb,
+                    std::size_t count, std::uint32_t cpsr, std::uint32_t fpscr) {
+        A32::PSR psr{cpsr};
+        A32::FPSCR fpcr{fpscr};
+        for (std::size_t i = 0; i < count; ++i) {
+            psr.T(thumb[i]);
+            GetBasicBlock(A32::LocationDescriptor{addresses[i], psr, fpcr});
+        }
+    }
+
 private:
     static CodePtr GetCurrentBlockThunk(void* this_voidptr) {
         Jit::Impl& this_ = *static_cast<Jit::Impl*>(this_voidptr);
@@ -286,6 +296,11 @@ void Jit::ClearCache() {
 
 void Jit::InvalidateCacheRange(std::uint32_t start_address, std::size_t length) {
     impl->InvalidateCacheRange(start_address, length);
+}
+
+void Jit::Precompile(const std::uint32_t* addresses, const bool* thumb,
+                     std::size_t count, std::uint32_t cpsr, std::uint32_t fpscr) {
+    impl->Precompile(addresses, thumb, count, cpsr, fpscr);
 }
 
 void Jit::Reset() {

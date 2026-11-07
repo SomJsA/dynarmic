@@ -47,6 +47,12 @@ public:
      */
     void InvalidateCacheRange(std::uint32_t start_address, std::size_t length);
 
+    /** Translate the supplied guest entry points into the code cache without
+     * executing them. The caller must provide the current CPSR/FPSCR context;
+     * this is intended for bounded, immutable cold-path prewarming. */
+    void Precompile(const std::uint32_t* addresses, const bool* thumb,
+                    std::size_t count, std::uint32_t cpsr, std::uint32_t fpscr);
+
     /**
      * Reset CPU state to state at startup. Does not clear code cache.
      * Cannot be called from a callback.
